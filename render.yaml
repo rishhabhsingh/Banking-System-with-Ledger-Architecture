@@ -1,0 +1,23 @@
+# Render Blueprint: New > Blueprint > pick this repo. Database = MongoDB Atlas (free M0 works).
+services:
+  - type: web
+    name: ledger-bank
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/ready
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGO_URI
+        sync: false
+      - key: SYSTEM_EMAIL
+        value: system@ledger.local
+      - key: SYSTEM_PASSWORD
+        sync: false
+      - key: ALLOW_DEMO_FUNDS
+        value: "false"
+      - key: EMAIL_ENABLED
+        value: "false"

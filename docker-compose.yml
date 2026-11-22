@@ -1,0 +1,28 @@
+# One command to run everything locally, including a MongoDB replica set (needed for transactions):
+#   docker compose up --build        then open http://localhost:3000
+#   docker compose exec api npm run seed    (once, creates the system account)
+services:
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }"]
+      interval: 5s
+      retries: 20
+      start_period: 5s
+  api:
+    build: .
+    ports: ["3000:3000"]
+    depends_on:
+      mongo: { condition: service_healthy }
+    environment:
+      MONGO_URI: mongodb://mongo:27017/ledger?replicaSet=rs0
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-please-0123456789}
+      SYSTEM_EMAIL: system@ledger.local
+      SYSTEM_PASSWORD: ${SYSTEM_PASSWORD:-ChangeThisSystemPassword1}
+      ALLOW_DEMO_FUNDS: "true"
+      EMAIL_ENABLED: "false"
+      NODE_ENV: development
+volumes:
+  mongo-data:
